@@ -29,3 +29,20 @@ class Domain(DomainMixin):
 
     def __str__(self):
         return self.domain
+
+
+class WebhookItemTenantMap(models.Model):
+    """
+    Public-schema lookup table mapping Plaid item_id to tenant schema.
+    Used by the webhook endpoint to resolve which tenant a webhook belongs to.
+    """
+    item_id = models.TextField(primary_key=True, help_text="Plaid item_id")
+    tenant_schema = models.CharField(max_length=63, help_text="Tenant schema name")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "tenants"
+        db_table = "webhook_item_tenant_map"
+
+    def __str__(self):
+        return f"{self.item_id[:16]} → {self.tenant_schema}"

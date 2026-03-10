@@ -9,5 +9,6 @@ urlpatterns = [
     path("auth/", include("accounts.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("manage/", include("dashboard.admin_urls")),
+    path("api/plaid/", include("plaid_ingest.urls")),
     path("django-admin/", admin.site.urls),
 ]

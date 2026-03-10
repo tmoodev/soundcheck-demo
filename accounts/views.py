@@ -4,6 +4,7 @@ import base64
 import pyotp
 import qrcode
 import qrcode.image.svg
+import qrcode.image.pil
 
 from django.conf import settings
 from django.contrib import messages

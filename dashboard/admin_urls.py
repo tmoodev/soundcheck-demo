@@ -19,6 +19,10 @@ urlpatterns = [
     path("clients/<uuid:client_id>/mappings/<int:mapping_id>/delete/",
          admin_views.client_mapping_delete_view, name="client_mapping_delete"),
 
+    # Bank connections (Plaid)
+    path("banks/", admin_views.plaid_items_view, name="plaid_items"),
+    path("banks/connect/", admin_views.plaid_connect_view, name="plaid_connect"),
+
     # Audit log
     path("audit/", admin_views.audit_log_view, name="audit_log"),
 ]

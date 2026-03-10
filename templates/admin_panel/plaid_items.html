@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Bank Connections</h1>
+        <a href="{% url 'admin_panel:plaid_connect' %}"
+           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+            Connect New Bank
+        </a>
+    </div>
+
+    {% if items %}
+    <div class="grid gap-4">
+        {% for item in items %}
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-white">{{ item.institution_name|default:"Unknown Institution" }}</h3>
+                    <p class="text-xs text-gray-500 font-mono mt-1">{{ item.item_id|truncatechars:24 }}</p>
+                    {% if item.client %}
+                    <p class="text-sm text-gray-400 mt-1">Client: <span class="text-white">{{ item.client.name }}</span></p>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if item.status == "active" %}
+                    <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-green-800 text-green-200">Active</span>
+                    {% elif item.status == "error" %}
+                    <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-red-800 text-red-200">Error</span>
+                    {% elif item.status == "revoked" %}
+                    <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300">Revoked</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Accounts -->
+            <div class="mt-4">
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Accounts ({{ item.accounts.count }})</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-xs text-gray-500 uppercase">
+                                <th class="pb-2 pr-4">Name</th>
+                                <th class="pb-2 pr-4">Type</th>
+                                <th class="pb-2 pr-4">Mask</th>
+                                <th class="pb-2 pr-4 text-right">Balance</th>
+                                <th class="pb-2 pr-4 text-right">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700/50">
+                            {% for acct in item.accounts.all %}
+                            <tr>
+                                <td class="py-2 pr-4 text-white">{{ acct.name }}</td>
+                                <td class="py-2 pr-4 text-gray-400">{{ acct.type }}/{{ acct.subtype }}</td>
+                                <td class="py-2 pr-4 text-gray-400 font-mono">{{ acct.mask }}</td>
+                                <td class="py-2 pr-4 text-right num-col {% if acct.balance and acct.balance.current_balance < 0 %}text-red-400{% else %}text-white{% endif %}">
+                                    {% if acct.balance %}${{ acct.balance.current_balance|floatformat:2 }}{% else %}-{% endif %}
+                                </td>
+                                <td class="py-2 pr-4 text-right num-col text-gray-300">
+                                    {% if acct.balance and acct.balance.available_balance %}${{ acct.balance.available_balance|floatformat:2 }}{% else %}-{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-4 pt-4 border-t border-gray-700 flex items-center justify-between">
+                <div class="text-xs text-gray-500">
+                    Last synced: {{ item.last_sync_at|date:"M d, Y H:i"|default:"Never" }}
+                    &middot; Connected: {{ item.created_at|date:"M d, Y" }}
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="syncItem('{{ item.id }}')"
+                            class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-medium transition-colors"
+                            id="sync-btn-{{ item.id }}">
+                        Sync Transactions
+                    </button>
+                    <button onclick="refreshBalances('{{ item.id }}')"
+                            class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-medium transition-colors"
+                            id="refresh-btn-{{ item.id }}">
+                        Refresh Balances
+                    </button>
+                </div>
+            </div>
+            <div id="item-status-{{ item.id }}" class="mt-2 text-xs hidden"></div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-gray-800 rounded-xl border border-gray-700 p-12 text-center">
+        <p class="text-gray-400 mb-4">No bank accounts connected yet.</p>
+        <a href="{% url 'admin_panel:plaid_connect' %}"
+           class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+            Connect First Bank Account
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+
+async function syncItem(itemId) {
+    const btn = document.getElementById('sync-btn-' + itemId);
+    const status = document.getElementById('item-status-' + itemId);
+    btn.disabled = true;
+    btn.textContent = 'Syncing...';
+    status.classList.remove('hidden');
+    status.className = 'mt-2 text-xs text-blue-400';
+    status.textContent = 'Syncing transactions...';
+
+    try {
+        const res = await fetch('/api/plaid/items/' + itemId + '/sync/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+        });
+        const data = await res.json();
+        if (data.error) {
+            status.className = 'mt-2 text-xs text-red-400';
+            status.textContent = 'Error: ' + data.error;
+        } else {
+            status.className = 'mt-2 text-xs text-green-400';
+            status.textContent = 'Sync complete: +' + data.added + ' added, ~' + data.modified + ' modified, -' + data.removed + ' removed';
+        }
+    } catch (err) {
+        status.className = 'mt-2 text-xs text-red-400';
+        status.textContent = 'Error: ' + err.message;
+    }
+    btn.disabled = false;
+    btn.textContent = 'Sync Transactions';
+}
+
+async function refreshBalances(itemId) {
+    const btn = document.getElementById('refresh-btn-' + itemId);
+    const status = document.getElementById('item-status-' + itemId);
+    btn.disabled = true;
+    btn.textContent = 'Refreshing...';
+    status.classList.remove('hidden');
+    status.className = 'mt-2 text-xs text-blue-400';
+    status.textContent = 'Refreshing balances...';
+
+    try {
+        const res = await fetch('/api/plaid/items/' + itemId + '/refresh-balances/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+        });
+        const data = await res.json();
+        if (data.error) {
+            status.className = 'mt-2 text-xs text-red-400';
+            status.textContent = 'Error: ' + data.error;
+        } else {
+            status.className = 'mt-2 text-xs text-green-400';
+            status.textContent = 'Balances refreshed. Reload to see updated values.';
+        }
+    } catch (err) {
+        status.className = 'mt-2 text-xs text-red-400';
+        status.textContent = 'Error: ' + err.message;
+    }
+    btn.disabled = false;
+    btn.textContent = 'Refresh Balances';
+}
+</script>
+{% endblock %}

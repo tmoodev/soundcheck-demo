@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Connect Bank Account</h1>
+        <a href="{% url 'admin_panel:plaid_items' %}" class="text-sm text-blue-400 hover:text-blue-300">View Connected Accounts</a>
+    </div>
+
+    <!-- Step 1: Select Client -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <h2 class="text-lg font-semibold mb-4">1. Select Client</h2>
+        <p class="text-sm text-gray-400 mb-4">Choose which client this bank connection belongs to, or create a new client first.</p>
+        <div class="flex items-end gap-4">
+            <div class="w-80">
+                <label class="block text-xs font-medium text-gray-400 mb-1">Client</label>
+                <select id="client-select"
+                        class="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-white focus:ring-2 focus:ring-blue-500">
+                    <option value="">-- Select Client --</option>
+                    {% for c in clients %}
+                    <option value="{{ c.client_id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <a href="{% url 'admin_panel:client_create' %}" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors">
+                New Client
+            </a>
+        </div>
+    </div>
+
+    <!-- Step 2: Connect via Plaid -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <h2 class="text-lg font-semibold mb-4">2. Connect Bank</h2>
+        <p class="text-sm text-gray-400 mb-4">Click below to open the secure Plaid connection flow. The user will authenticate with their bank.</p>
+        <button id="connect-btn"
+                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+                disabled>
+            Connect Bank Account
+        </button>
+        <p id="connect-hint" class="text-xs text-gray-500 mt-2">Select a client first to enable the connection.</p>
+    </div>
+
+    <!-- Status -->
+    <div id="status-panel" class="hidden bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <h2 class="text-lg font-semibold mb-4">Connection Status</h2>
+        <div id="status-content" class="text-sm text-gray-300"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const clientSelect = document.getElementById('client-select');
+    const connectBtn = document.getElementById('connect-btn');
+    const connectHint = document.getElementById('connect-hint');
+    const statusPanel = document.getElementById('status-panel');
+    const statusContent = document.getElementById('status-content');
+    const csrfToken = '{{ csrf_token }}';
+
+    // Enable/disable connect button based on client selection
+    clientSelect.addEventListener('change', function() {
+        if (this.value) {
+            connectBtn.disabled = false;
+            connectHint.textContent = 'Ready to connect.';
+        } else {
+            connectBtn.disabled = true;
+            connectHint.textContent = 'Select a client first to enable the connection.';
+        }
+    });
+
+    connectBtn.addEventListener('click', async function() {
+        const clientId = clientSelect.value;
+        if (!clientId) return;
+
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Initializing...';
+
+        try {
+            // Step 1: Get link token from backend
+            const tokenRes = await fetch('{% url "plaid_ingest:create_link_token" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ client_id: clientId }),
+            });
+            const tokenData = await tokenRes.json();
+
+            if (!tokenData.link_token) {
+                throw new Error(tokenData.error || 'Failed to get link token');
+            }
+
+            // Step 2: Open Plaid Link
+            const handler = Plaid.create({
+                token: tokenData.link_token,
+                onSuccess: async function(public_token, metadata) {
+                    showStatus('Exchanging token and fetching accounts...', 'loading');
+
+                    try {
+                        const exchangeRes = await fetch('{% url "plaid_ingest:exchange_token" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken,
+                            },
+                            body: JSON.stringify({
+                                public_token: public_token,
+                                client_id: clientId,
+                            }),
+                        });
+                        const exchangeData = await exchangeRes.json();
+
+                        if (exchangeData.error) {
+                            showStatus('Error: ' + exchangeData.error, 'error');
+                        } else {
+                            showStatus(
+                                '<div class="space-y-2">' +
+                                '<p class="text-green-400 font-medium">Bank connected successfully!</p>' +
+                                '<p>Institution: <strong>' + exchangeData.institution_name + '</strong></p>' +
+                                '<p>Accounts: <strong>' + exchangeData.accounts_count + '</strong></p>' +
+                                '<p class="mt-4"><a href="{% url "admin_panel:plaid_items" %}" class="text-blue-400 hover:text-blue-300 underline">View Connected Accounts</a></p>' +
+                                '</div>',
+                                'success'
+                            );
+                        }
+                    } catch (err) {
+                        showStatus('Error exchanging token: ' + err.message, 'error');
+                    }
+                },
+                onExit: function(err, metadata) {
+                    connectBtn.disabled = false;
+                    connectBtn.textContent = 'Connect Bank Account';
+                    if (err) {
+                        showStatus('Connection cancelled or failed: ' + (err.display_message || err.error_code), 'error');
+                    }
+                },
+                onEvent: function(eventName, metadata) {
+                    console.log('Plaid event:', eventName, metadata);
+                },
+            });
+
+            handler.open();
+
+        } catch (err) {
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Connect Bank Account';
+            showStatus('Error: ' + err.message, 'error');
+        }
+    });
+
+    function showStatus(html, type) {
+        statusPanel.classList.remove('hidden');
+        let borderClass = 'border-gray-700';
+        if (type === 'success') borderClass = 'border-green-700';
+        else if (type === 'error') borderClass = 'border-red-700';
+        else if (type === 'loading') borderClass = 'border-blue-700';
+        statusPanel.className = 'bg-gray-800 rounded-xl border p-6 ' + borderClass;
+        statusContent.innerHTML = html;
+    }
+})();
+</script>
+{% endblock %}

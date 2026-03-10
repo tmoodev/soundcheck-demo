@@ -10,3 +10,5 @@ gunicorn>=21.2
 psycopg2-binary>=2.9
 python-dotenv>=1.0
 whitenoise>=6.5
+plaid-python>=29.0
+cryptography>=42.0

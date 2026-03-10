@@ -41,6 +41,7 @@ TENANT_APPS = [
     "clients",
     "dashboard",
     "auditlog",
+    "plaid_ingest",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
@@ -125,10 +126,10 @@ PASSWORD_HASHERS = [
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = int(os.environ.get("SESSION_COOKIE_AGE", 28800))
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", str(not DEBUG)).lower() in ("true", "1")
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", str(not DEBUG)).lower() in ("true", "1")
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
@@ -191,6 +192,14 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
+
+# ---------------------------------------------------------------------------
+# Plaid
+# ---------------------------------------------------------------------------
+PLAID_CLIENT_ID = os.environ.get("PLAID_CLIENT_ID", "")
+PLAID_SECRET = os.environ.get("PLAID_SECRET", "")
+PLAID_ENV = os.environ.get("PLAID_ENV", "sandbox")
+PLAID_WEBHOOK_URL = os.environ.get("PLAID_WEBHOOK_URL", "")
 
 # ---------------------------------------------------------------------------
 # CSV Export

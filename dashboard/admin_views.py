@@ -216,6 +216,34 @@ def client_mapping_delete_view(request, client_id, mapping_id):
 
 
 # ---------------------------------------------------------------------------
+# Plaid Bank Connections
+# ---------------------------------------------------------------------------
+@login_required
+@tenant_admin_required
+def plaid_connect_view(request):
+    """Page to connect a new bank account via Plaid Link."""
+    clients = Client.objects.filter(active=True)
+    return render(request, "admin_panel/plaid_connect.html", {
+        "clients": clients,
+        "page_title": "Connect Bank",
+        "active_page": "banks",
+    })
+
+
+@login_required
+@tenant_admin_required
+def plaid_items_view(request):
+    """List all connected Plaid items."""
+    from plaid_ingest.models import PlaidItem
+    items = PlaidItem.objects.select_related("client").prefetch_related("accounts__balance").all()
+    return render(request, "admin_panel/plaid_items.html", {
+        "items": items,
+        "page_title": "Bank Connections",
+        "active_page": "banks",
+    })
+
+
+# ---------------------------------------------------------------------------
 # Audit Log
 # ---------------------------------------------------------------------------
 @login_required
