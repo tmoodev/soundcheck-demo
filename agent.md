@@ -10,28 +10,33 @@
 | Field | Value |
 |-------|-------|
 | **Application** | SoundCheck Financial -- Multi-tenant financial dashboard |
-| **Hostname** | `app-soundcheck` |
-| **Public IP** | `136.58.18.216` |
-| **OS** | Ubuntu 22.04.5 LTS (Jammy), kernel 5.15.0-170-generic, x86_64 |
-| **RAM** | 15 GiB |
-| **Disk** | 24G root (`/dev/mapper/ubuntu--vg-ubuntu--lv`) |
+| **Provider** | AWS (us-east-1) |
+| **EC2 Instance ID** | `i-088b06e8cf95fc3f4` |
+| **EC2 Public IP** | `100.54.26.231` |
+| **EC2 Public DNS** | `ec2-100-54-26-231.compute-1.amazonaws.com` |
+| **OS** | Ubuntu 22.04 LTS |
+| **Instance Type** | t3.small (2 vCPU, 2 GB RAM) |
+| **Disk** | 20 GB gp3 |
+
+**SSH access:**
+```bash
+ssh -i ~/.ssh/soundcheck-ec2.pem ubuntu@100.54.26.231
+```
+Key file: `~/.ssh/soundcheck-ec2.pem` (AWS key pair: `soundcheck-ec2`)
+SSH restricted to `136.58.18.216/32` (office egress IP).
 
 ---
 
 ## Users and Access
 
-| User | UID | Purpose | Sudo |
-|------|-----|---------|------|
-| `travis` | 1000 | Agent operator, member of `soundcheck` group | Yes (password: `Theo@4309`) |
-| `soundcheck` | 1001 | Application service account, owns the codebase | Yes (password required) |
+| User | Purpose | Sudo |
+|------|---------|------|
+| `ubuntu` | Default AWS user, SSH entry point | Yes (passwordless) |
+| `soundcheck` | Application service account, owns the codebase | No |
 
-**Sudo pattern** (travis has password-based sudo):
+**Run commands as soundcheck:**
 ```bash
-export SUDO_ASKPASS=/tmp/askpass.sh
-printf '#!/bin/sh\necho "Theo@4309"\n' > /tmp/askpass.sh
-chmod 700 /tmp/askpass.sh
-sudo -A <command>
-rm -f /tmp/askpass.sh
+sudo -u soundcheck bash -c 'cd /home/soundcheck/soundcheck_v2 && source venv/bin/activate && <command>'
 ```
 
 ---
@@ -40,13 +45,42 @@ rm -f /tmp/askpass.sh
 
 | Component | Version | Details |
 |-----------|---------|---------|
-| **Python** | 3.11.0rc1 | Virtualenv at `/home/soundcheck/soundcheck_v2/venv/` |
+| **Python** | 3.11 | Virtualenv at `/home/soundcheck/soundcheck_v2/venv/` |
 | **Django** | 4.2.28 | Multi-tenant via `django-tenants` 3.10.0 (schema-per-tenant) |
 | **Gunicorn** | 25.0.3 | 4 workers, bound to `127.0.0.1:8000` |
-| **PostgreSQL** | Remote | Host `10.139.0.201:5432`, database `clineco`, user `clineco` |
-| **Plaid** | plaid-python 38.1.0 | Sandbox environment |
-| **Cloudflared** | Latest | Tunnel `soundcheck-demo` (ID: `09b1ed58-4dee-42a7-93f8-778a95a20158`) |
-| **Nginx** | Installed but DISABLED | Not in use; all traffic routes through cloudflared tunnel |
+| **PostgreSQL** | 15.10 (RDS) | See Database section below |
+| **Plaid** | plaid-python 38.1.0 | **Production** environment |
+| **Cloudflared** | 2026.3.0 | Tunnel ID: `09b1ed58-4dee-42a7-93f8-778a95a20158` |
+
+---
+
+## Database (RDS)
+
+| Field | Value |
+|-------|-------|
+| **Engine** | PostgreSQL 15.10 |
+| **Instance** | `soundcheck-db` (db.t3.micro) |
+| **Endpoint** | `soundcheck-db.cetwoug00f0j.us-east-1.rds.amazonaws.com` |
+| **Port** | `5432` |
+| **Database** | `soundcheck` |
+| **User** | `soundcheck` |
+| **Security Group** | `sg-065f6ba151567c026` (soundcheck-rds) — port 5432 from EC2 SG only |
+
+Connect from EC2:
+```bash
+PGPASSWORD=<password> psql -h soundcheck-db.cetwoug00f0j.us-east-1.rds.amazonaws.com -U soundcheck -d soundcheck
+```
+
+---
+
+## AWS Resources
+
+| Resource | ID / Value |
+|----------|-----------|
+| **VPC** | `vpc-057d2aa51e7c7b762` (default, us-east-1) |
+| **Subnet** | `subnet-000101a217ce795ca` (us-east-1a, public) |
+| **EC2 Security Group** | `sg-0d1e06a45f1f0b9d4` (soundcheck-ec2) |
+| **RDS Security Group** | `sg-065f6ba151567c026` (soundcheck-rds) |
 
 ---
 
@@ -65,8 +99,7 @@ rm -f /tmp/askpass.sh
 | **Cloudflared service** | `/etc/systemd/system/cloudflared.service` |
 | **Cloudflared config** | `/etc/cloudflared/config.yml` |
 | **Cloudflared creds** | `/etc/cloudflared/09b1ed58-4dee-42a7-93f8-778a95a20158.json` |
-| **Nginx config** | `/home/soundcheck/soundcheck_v2/deploy/nginx.conf` (reference only, nginx disabled) |
-| **SSL certs** | `/etc/nginx/ssl/cloudflare-origin.pem`, `/etc/nginx/ssl/cloudflare-origin.key` |
+| **Cloudflared auth cert** | `/root/.cloudflared/cert.pem` (used for `tunnel route dns` commands) |
 
 ---
 
@@ -99,18 +132,14 @@ rm -f /tmp/askpass.sh
 
 ## Tenants
 
-| Schema | Name | Domains |
-|--------|------|---------|
-| `public` | Public | `api.soundcheckfinancial.com` (webhook endpoint) |
-| `demo` | Demo Organization | `demo.soundcheckfinancial.com`, `demo.soundcheck.local`, `demo.localhost` |
-| `moore` | Moore Family | `moore.soundcheckfinancial.com` |
+| Schema | Name | Domain | Admin Email |
+|--------|------|--------|-------------|
+| `public` | Public | `api.soundcheckfinancial.com` | — (webhook only) |
+| `demo` | Demo | `demo.soundcheckfinancial.com` | `admin@demo.local` |
+| `moore` | Moore | `moore.soundcheckfinancial.com` | `travis@digitalmoore.com` |
+| `clineco` | Cline-Co | `clineco.soundcheckfinancial.com` | `admin@cline-co.com` |
 
-### Tenant Admin Users
-
-| Tenant | Email | Role |
-|--------|-------|------|
-| demo | `admin@demo.local` | admin |
-| moore | `travis@digitalmoore.com` | admin |
+Initial admin password for all tenants: `TempPass123!` — change on first login.
 
 ---
 
@@ -119,10 +148,9 @@ rm -f /tmp/askpass.sh
 | Schema | Purpose |
 |--------|---------|
 | `public` | Shared Django tables, tenant registry, `webhook_item_tenant_map` |
-| `demo` | Demo tenant data (users, clients, plaid_item/account/transaction, etc.) |
-| `moore` | Moore tenant data (same structure) |
-| `plaid` | **LEGACY** -- Original shared Plaid data. Demo data has been migrated to tenant-scoped `plaid_ingest` models. Can be dropped after verification. |
-| `analytics` | **LEGACY** -- Views (`vw_superset_accounts_current`, `vw_superset_transactions`) that query `plaid.*`. No longer used by the app (dashboard now queries ORM models). |
+| `demo` | Demo tenant data |
+| `moore` | Moore tenant data |
+| `clineco` | Cline-Co tenant data |
 
 ---
 
@@ -131,8 +159,7 @@ rm -f /tmp/askpass.sh
 | Setting | Value |
 |---------|-------|
 | **Client ID** | `69691f393734c100217b330e` |
-| **Secret** | `b0f05746f2e77644aef90fe9f7a1e1` |
-| **Environment** | `sandbox` |
+| **Environment** | `production` |
 | **Webhook URL** | `https://api.soundcheckfinancial.com/api/plaid/webhook/` |
 
 ### Plaid Ingest Models (tenant-scoped)
@@ -162,11 +189,10 @@ Plaid sends webhooks to `https://api.soundcheckfinancial.com/api/plaid/webhook/`
 
 | Field | Value |
 |-------|-------|
-| **Tunnel name** | `soundcheck-demo` |
 | **Tunnel ID** | `09b1ed58-4dee-42a7-93f8-778a95a20158` |
 | **Config** | `/etc/cloudflared/config.yml` |
 | **Credentials** | `/etc/cloudflared/09b1ed58-4dee-42a7-93f8-778a95a20158.json` |
-| **Auth cert** | `/home/travis/.cloudflared/cert.pem` (for CLI commands like `tunnel route dns`) |
+| **Auth cert** | `/root/.cloudflared/cert.pem` (required for `tunnel route dns` commands) |
 
 ### Ingress Rules
 
@@ -175,15 +201,31 @@ Plaid sends webhooks to `https://api.soundcheckfinancial.com/api/plaid/webhook/`
 | `demo.soundcheckfinancial.com` | `http://127.0.0.1:8000` |
 | `moore.soundcheckfinancial.com` | `http://127.0.0.1:8000` |
 | `api.soundcheckfinancial.com` | `http://127.0.0.1:8000` |
+| `clineco.soundcheckfinancial.com` | `http://127.0.0.1:8000` |
 | Catch-all | `http_status:404` |
 
 ### Adding a New Tenant Subdomain
 
-1. Provision the tenant: `python manage.py provision_tenant --name "..." --slug <slug> --domain <slug>.soundcheckfinancial.com --admin-email ... --admin-first-name ... --admin-last-name ...`
-2. Add CSRF origin to `.env`: append `https://<slug>.soundcheckfinancial.com` to `CSRF_TRUSTED_ORIGINS`
-3. Add ingress rule to `/etc/cloudflared/config.yml` (before the catch-all)
-4. Create DNS route: `cloudflared tunnel route dns soundcheck-demo <slug>.soundcheckfinancial.com`
-5. Restart services: `sudo systemctl restart cloudflared && sudo systemctl restart soundcheck`
+1. Provision the tenant:
+   ```bash
+   python manage.py provision_tenant --name "..." --slug <slug> \
+     --domain <slug>.soundcheckfinancial.com --admin-email ...
+   ```
+2. Add ingress rule to `/etc/cloudflared/config.yml` (before the catch-all):
+   ```yaml
+   - hostname: <slug>.soundcheckfinancial.com
+     service: http://127.0.0.1:8000
+     originRequest:
+       httpHostHeader: <slug>.soundcheckfinancial.com
+   ```
+3. Add DNS CNAME via cloudflared (requires cert at `/root/.cloudflared/cert.pem`):
+   ```bash
+   sudo cloudflared tunnel route dns 09b1ed58-4dee-42a7-93f8-778a95a20158 <slug>.soundcheckfinancial.com
+   ```
+4. Restart services:
+   ```bash
+   sudo systemctl restart cloudflared && sudo systemctl restart soundcheck
+   ```
 
 ---
 
@@ -207,7 +249,7 @@ sudo systemctl status cloudflared --no-pager
 
 ### View application logs
 ```bash
-sudo journalctl -u soundcheck -f              # follow live
+sudo journalctl -u soundcheck -f                                          # follow live
 sudo journalctl -u soundcheck --since "5 min ago" --no-pager
 sudo journalctl -u soundcheck --since "5 min ago" --no-pager | grep -i error
 ```
@@ -242,8 +284,6 @@ python manage.py provision_tenant \
     --slug tenantslug \
     --domain tenantslug.soundcheckfinancial.com \
     --admin-email admin@example.com \
-    --admin-first-name "First" \
-    --admin-last-name "Last" \
     --admin-password "SecurePassword10+"
 ```
 
@@ -252,12 +292,6 @@ python manage.py provision_tenant \
 python manage.py sync_all_items                    # all tenants
 python manage.py sync_all_items --tenant demo      # specific tenant
 python manage.py sync_all_items --balances         # also refresh balances
-```
-
-### Migrate legacy Plaid data into a tenant
-```bash
-python manage.py migrate_plaid_data --tenant demo --client-name "Client Name"
-python manage.py migrate_plaid_data --tenant demo --dry-run   # preview only
 ```
 
 ### Run migrations
@@ -279,7 +313,7 @@ python manage.py collectstatic --noinput
 ### Reset MFA for a user (Django shell)
 ```python
 from django_tenants.utils import schema_context
-with schema_context('demo'):  # or 'moore'
+with schema_context('demo'):  # replace with target tenant
     from accounts.models import User, TrustedDevice
     user = User.objects.get(email='admin@demo.local')
     user.mfa_secret = ''
@@ -302,7 +336,6 @@ Navigate to Manage > Users > click the user > Reset MFA button.
 | **SMTP Host** | `smtp.office365.com` |
 | **Port** | 587 (STARTTLS) |
 | **User** | `noreply@soundcheckfinancial.com` |
-| **Password** | `vczstckklrskrjvd` |
 | **From** | `noreply@soundcheckfinancial.com` |
 
 Used for password reset emails.
@@ -311,57 +344,17 @@ Used for password reset emails.
 
 ## Known Issues and Notes
 
-1. **File ownership mismatch**: The `plaid_ingest/` directory is owned by `travis:travis` while the rest of the codebase is `soundcheck:soundcheck`. This works because `travis` is in the `soundcheck` group and directories have group write permissions. To normalize: `sudo chown -R soundcheck:soundcheck /home/soundcheck/soundcheck_v2/plaid_ingest/`
-
-2. **Legacy schemas**: The `plaid` and `analytics` schemas are legacy. The demo tenant data has been migrated to tenant-scoped `plaid_ingest` models. The `analytics` views are no longer queried by the dashboard. These schemas can be dropped after confirming everything works.
-
-3. **CSRF_TRUSTED_ORIGINS duplication**: The `.env` file has `CSRF_TRUSTED_ORIGINS` defined twice (lines 4 and near the bottom under Security). The second one wins. When adding new tenant origins, update the **second** occurrence.
-
-4. **No cron jobs**: `sync_all_items` is not yet scheduled via cron. To add:
+1. **No cron jobs**: `sync_all_items` is not yet scheduled. To add:
    ```
    # Example: sync every 6 hours
    0 */6 * * * /home/soundcheck/soundcheck_v2/venv/bin/python /home/soundcheck/soundcheck_v2/manage.py sync_all_items --balances >> /var/log/soundcheck-sync.log 2>&1
    ```
 
-5. **Plaid webhook signature verification**: Not yet implemented. The webhook endpoint accepts any POST. Before going to production, implement JWT signature verification using Plaid's `/webhook_verification_key/get` endpoint.
+2. **Plaid webhook signature verification**: Not yet implemented. The webhook endpoint accepts any POST. Implement JWT signature verification using Plaid's `/webhook_verification_key/get` endpoint before trusting webhook payloads.
 
-6. **DJANGO_SECRET_KEY**: Currently set to `THISISJUSTATEST123`. This **must** be changed to a secure random value before production. Generate with: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`. **Warning**: Changing the secret key will invalidate all sessions and encrypted Plaid access tokens.
+3. **SECURE_SSL_REDIRECT**: Set to `False` in `.env`. Cloudflare handles HTTPS enforcement at the edge.
 
-7. **SECURE_SSL_REDIRECT**: Set to `False` in `.env` to allow local HTTP access. Cloudflare handles HTTPS enforcement at the edge.
-
-8. **Git**: The repo at `/home/soundcheck/soundcheck_v2/.git` refuses operations as `travis` due to ownership. Run `git config --global --add safe.directory /home/soundcheck/soundcheck_v2` to fix.
-
----
-
-## Dependency List (pip freeze)
-
-```
-argon2-cffi==25.1.0
-argon2-cffi-bindings==25.1.0
-asgiref==3.11.1
-cffi==2.0.0
-cryptography==46.0.5
-Django==4.2.28
-django-otp==1.7.0
-django-ratelimit==4.1.0
-django-tenants==3.10.0
-djangorestframework==3.16.1
-gunicorn==25.0.3
-nulltype==2.3.1
-packaging==26.0
-pillow==12.1.1
-plaid-python==38.1.0
-psycopg2-binary==2.9.11
-pycparser==3.0
-pyotp==2.9.0
-python-dateutil==2.9.0.post0
-python-dotenv==1.2.1
-qrcode==8.2
-six==1.17.0
-sqlparse==0.5.5
-urllib3==2.6.3
-whitenoise==6.11.0
-```
+4. **RDS deletion protection**: Enabled. Must be disabled in AWS console before the instance can be deleted.
 
 ---
 
@@ -369,7 +362,7 @@ whitenoise==6.11.0
 
 ### Dashboard shows 500
 1. Check logs: `sudo journalctl -u soundcheck --since "2 min ago" --no-pager`
-2. Common cause: database column name mismatches, missing migrations, or missing tenant data
+2. Common causes: missing migrations, missing tenant data, Plaid API errors
 
 ### Site unreachable
 1. Check gunicorn: `sudo systemctl status soundcheck`
@@ -378,16 +371,15 @@ whitenoise==6.11.0
 
 ### Plaid sync errors
 1. Check item status in Django shell
-2. Check webhook events: query `PlaidWebhookEvent.objects.order_by('-received_at')[:10]`
+2. Check webhook events: `PlaidWebhookEvent.objects.order_by('-received_at')[:10]`
 3. Manual sync: `python manage.py sync_all_items --tenant <slug>`
 
 ### New tenant not accessible
-1. Verify domain record exists: check `Domain.objects.all()` in Django shell
-2. Verify cloudflared ingress rule includes the hostname
-3. Verify DNS CNAME created: `cloudflared tunnel route dns soundcheck-demo <hostname>`
-4. Verify CSRF origin added to `.env`
-5. Restart both services
+1. Verify domain record: `Domain.objects.all()` in Django shell
+2. Verify cloudflared ingress rule includes the hostname in `/etc/cloudflared/config.yml`
+3. Verify DNS CNAME: `sudo cloudflared tunnel route dns 09b1ed58-4dee-42a7-93f8-778a95a20158 <hostname>`
+4. Restart both services
 
 ---
 
-*Last updated: 2026-02-13*
+*Last updated: 2026-03-10*
