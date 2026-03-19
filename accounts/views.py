@@ -1,5 +1,6 @@
 """Authentication views: login, MFA, password reset."""
 import io
+import logging
 import base64
 import pyotp
 import qrcode
@@ -17,6 +18,8 @@ from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 
 from auditlog.services import log_event
+
+logger = logging.getLogger(__name__)
 from .forms import (
     LoginForm, MFAVerifyForm, MFASetupForm,
     PasswordResetRequestForm, PasswordResetConfirmForm,
@@ -188,8 +191,10 @@ def password_reset_request_view(request):
                 user = User.objects.get(email=email, is_active=True)
                 token_obj = PasswordResetToken(user=user)
                 token_obj.save()
-                # Send email
-                _send_reset_email(request, user, token_obj.token)
+                try:
+                    _send_reset_email(request, user, token_obj.token)
+                except Exception:
+                    logger.exception("Failed to send password reset email to %s", email)
             except User.DoesNotExist:
                 pass  # Do not reveal whether email exists
             messages.success(request, "If an account exists with that email, a reset link has been sent.")

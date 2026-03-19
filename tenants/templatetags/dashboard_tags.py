@@ -4,6 +4,15 @@ from django import template
 register = template.Library()
 
 
+@register.filter(name="mul")
+def mul(value, arg):
+    """Multiply value by arg. Usage: {{ value|mul:-1 }}"""
+    try:
+        return value * arg
+    except (TypeError, ValueError):
+        return value
+
+
 @register.filter(name="split_pairs")
 def split_pairs(value):
     """Split 'Label1:key1,Label2:key2' into list of (label, key) tuples.

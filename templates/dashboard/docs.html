@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% block title %}Help & Documentation{% endblock %}
+
+{% block extra_head %}
+<style>
+    html { scroll-behavior: smooth; }
+    .doc-section { scroll-margin-top: 80px; }
+    .sidebar-link { transition: color 0.15s, border-color 0.15s; }
+    .sidebar-link.active { color: #60a5fa; border-left-color: #60a5fa; }
+    .sidebar-link:not(.active) { border-left-color: transparent; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex gap-8 items-start">
+
+    <!-- ── Sidebar ─────────────────────────────────────────────── -->
+    <aside class="hidden lg:block w-56 flex-shrink-0 sticky top-20 self-start">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Contents</p>
+            <nav class="space-y-0.5 text-sm" id="doc-nav">
+                <a href="#overview"       class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Overview</a>
+                <a href="#summary"        class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Summary Dashboard</a>
+                <a href="#transactions"   class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Transactions</a>
+                <a href="#clients"        class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Managing Clients</a>
+                <a href="#banks"          class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Connecting Banks</a>
+                <a href="#users"          class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Managing Users</a>
+                <a href="#audit"          class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Audit Log</a>
+                <a href="#mfa"            class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Multi-Factor Auth</a>
+                <a href="#password-reset" class="sidebar-link block pl-3 py-1.5 border-l-2 text-gray-300 hover:text-blue-400">Password Reset</a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ── Main content ───────────────────────────────────────── -->
+    <div class="flex-1 min-w-0 space-y-8">
+
+        <!-- Page header -->
+        <div class="border-b border-gray-700 pb-5">
+            <h1 class="text-2xl font-bold text-white">Help &amp; Documentation</h1>
+            <p class="mt-1 text-sm text-gray-400">Complete guide to using the SoundCheck Financial portal.</p>
+        </div>
+
+        <!-- Mobile quick-nav -->
+        <div class="lg:hidden bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Jump to section</p>
+            <div class="flex flex-wrap gap-2 text-xs">
+                <a href="#overview"       class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Overview</a>
+                <a href="#summary"        class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Summary</a>
+                <a href="#transactions"   class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Transactions</a>
+                <a href="#clients"        class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Clients</a>
+                <a href="#banks"          class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Banks</a>
+                <a href="#users"          class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Users</a>
+                <a href="#audit"          class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Audit</a>
+                <a href="#mfa"            class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">MFA</a>
+                <a href="#password-reset" class="px-2 py-1 bg-gray-700 rounded text-blue-400 hover:bg-gray-600">Password Reset</a>
+            </div>
+        </div>
+
+        <!-- ── 1. Overview ──────────────────────────────────────── -->
+        <section id="overview" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-white mb-3">Overview</h2>
+            <p class="text-gray-300 text-sm leading-relaxed mb-4">
+                SoundCheck Financial is a secure, multi-tenant financial dashboard that connects to your clients' bank
+                accounts via <strong class="text-gray-100">Plaid</strong>. It gives your team a real-time view of
+                account balances and transactions across all connected institutions — all in one place.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2 mt-5">Navigation</h3>
+            <table class="w-full text-sm border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-32">Nav Item</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">What it does</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr>
+                        <td class="py-2 pr-4 text-blue-400 font-medium">Summary</td>
+                        <td class="py-2 text-gray-300">Balance overview and account list for all connected banks</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-blue-400 font-medium">Transactions</td>
+                        <td class="py-2 text-gray-300">Searchable, filterable transaction history with CSV export</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-300">Users <span class="text-xs text-purple-400 ml-1">Admin</span></td>
+                        <td class="py-2 text-gray-300">Manage portal users, roles, and MFA settings</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-300">Clients <span class="text-xs text-purple-400 ml-1">Admin</span></td>
+                        <td class="py-2 text-gray-300">Create and manage clients and their account groupings</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-300">Banks <span class="text-xs text-purple-400 ml-1">Admin</span></td>
+                        <td class="py-2 text-gray-300">Connect bank accounts via Plaid, sync transactions, refresh balances</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-300">Audit <span class="text-xs text-purple-400 ml-1">Admin</span></td>
+                        <td class="py-2 text-gray-300">Security event log — logins, MFA changes, exports, and more</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="mt-4 p-4 bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg text-sm text-blue-200">
+                <strong>Tip:</strong> Admin-only sections (Users, Clients, Banks, Audit) are only visible in the navigation
+                if your account has the <em>Admin</em> role.
+            </div>
+        </section>
+
+        <!-- ── 2. Summary Dashboard ─────────────────────────────── -->
+        <section id="summary" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-white mb-1">Summary Dashboard</h2>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/dashboard/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                The Summary page gives an at-a-glance view of all connected account balances. Use the filters at the
+                top to narrow the view to a specific client or account type.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-3">KPI Tiles</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-3">
+                    <p class="text-xs text-gray-400 mb-1">Total Balance</p>
+                    <p class="text-sm text-gray-200">Sum of current balances across all displayed accounts.</p>
+                </div>
+                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-3">
+                    <p class="text-xs text-gray-400 mb-1">Total Available</p>
+                    <p class="text-sm text-gray-200">Sum of available balances (excludes pending holds).</p>
+                </div>
+                <div class="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3">
+                    <p class="text-xs text-yellow-400 mb-1">Total Pending</p>
+                    <p class="text-sm text-gray-200">Sum of all pending (not yet posted) transactions.</p>
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Filters</h3>
+            <table class="w-full text-sm border-collapse mb-6">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-36">Filter</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Client</td>
+                        <td class="py-2 text-gray-300">Filter accounts belonging to a specific client. Defaults to "All Clients".</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Account Type</td>
+                        <td class="py-2 text-gray-300">Filter by account type: Credit Cards, Depository, Loans, or Investment.</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Search</td>
+                        <td class="py-2 text-gray-300">Live search by account name. Results update automatically as you type.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Account Table Columns</h3>
+            <table class="w-full text-sm border-collapse mb-4">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-36">Column</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr><td class="py-2 pr-4 text-gray-200">Account Name</td><td class="py-2 text-gray-300">Account name from the bank.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Institution</td><td class="py-2 text-gray-300">Bank or financial institution name.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Type / Subtype</td><td class="py-2 text-gray-300">Account classification (e.g., depository / checking).</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Mask</td><td class="py-2 text-gray-300">Last 4 digits of the account number.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Balance</td><td class="py-2 text-gray-300">Current balance. Shown in <span class="text-red-400">red</span> if negative.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Available</td><td class="py-2 text-gray-300">Available balance after holds and pending items.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Credit Limit</td><td class="py-2 text-gray-300">Credit limit (credit card accounts only).</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Utilization %</td><td class="py-2 text-gray-300">Balance ÷ credit limit (credit card accounts only).</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Overdrawn</td><td class="py-2 text-gray-300">Red badge displayed when balance is negative.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Balance As Of</td><td class="py-2 text-gray-300">Timestamp of the most recent balance refresh.</td></tr>
+                </tbody>
+            </table>
+
+            <div class="p-4 bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg text-sm text-blue-200">
+                <strong>Tip:</strong> Click any column header to sort the table. Click the same header again to reverse the sort order.
+                An arrow icon indicates the current sort direction.
+            </div>
+        </section>
+
+        <!-- ── 3. Transactions ──────────────────────────────────── -->
+        <section id="transactions" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-white mb-1">Transactions</h2>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/dashboard/transactions/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                The Transactions page shows a complete, filterable history of all transactions across connected bank accounts.
+                The default view shows the last 30 days for all clients.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Filters</h3>
+            <table class="w-full text-sm border-collapse mb-6">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-36">Filter</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr><td class="py-2 pr-4 text-gray-200">Client</td><td class="py-2 text-gray-300">Filter to transactions belonging to a specific client.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Account</td><td class="py-2 text-gray-300">Narrows to a specific account. Updates automatically when a client is selected.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Date From / To</td><td class="py-2 text-gray-300">Date range for the transaction query. Defaults to the last 30 days.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Status</td><td class="py-2 text-gray-300">All, Pending Only, or Posted Only.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Search</td><td class="py-2 text-gray-300">Search by transaction name or merchant. Updates live as you type.</td></tr>
+                </tbody>
+            </table>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Transaction Table Columns</h3>
+            <table class="w-full text-sm border-collapse mb-6">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-28">Column</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr><td class="py-2 pr-4 text-gray-200">Date</td><td class="py-2 text-gray-300">Transaction date (or authorized date if available).</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Transaction</td><td class="py-2 text-gray-300">Transaction name as reported by the bank.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Merchant</td><td class="py-2 text-gray-300">Cleaned merchant name when available.</td></tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Amount</td>
+                        <td class="py-2 text-gray-300">
+                            Transaction amount. <span class="text-green-400 font-medium">Green</span> = money in (credit).
+                            <span class="text-red-400 font-medium">Red</span> = money out (debit).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Status</td>
+                        <td class="py-2 text-gray-300">
+                            <span class="inline-block px-1.5 py-0.5 bg-yellow-700/50 text-yellow-300 text-xs rounded mr-1">Pending</span>
+                            = not yet settled.
+                            <span class="text-gray-500 text-xs ml-1">Posted</span> = fully cleared.
+                        </td>
+                    </tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Account</td><td class="py-2 text-gray-300">Which account this transaction belongs to.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Institution</td><td class="py-2 text-gray-300">Bank that holds the account.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Channel</td><td class="py-2 text-gray-300">How the transaction was made: online, in-store, or other.</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Type</td><td class="py-2 text-gray-300">Transaction type (e.g., digital, place, special).</td></tr>
+                    <tr><td class="py-2 pr-4 text-gray-200">Direction</td><td class="py-2 text-gray-300">Credit (incoming) or Debit (outgoing).</td></tr>
+                </tbody>
+            </table>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">CSV Export</h3>
+            <p class="text-gray-300 text-sm leading-relaxed mb-3">
+                Click the <strong class="text-gray-100">Export CSV</strong> button (available on desktop) to download all
+                transactions matching your current filters as a spreadsheet-ready CSV file. The filename includes the
+                selected date range (e.g., <code class="text-xs bg-gray-700 px-1.5 py-0.5 rounded font-mono">transactions_2025-01-01_2025-03-31.csv</code>).
+            </p>
+            <div class="p-4 bg-yellow-900/30 border-l-4 border-yellow-500 rounded-r-lg text-sm text-yellow-200">
+                <strong>Note:</strong> CSV export is only available on desktop browsers. The export button is hidden on mobile devices.
+                Very large exports may be subject to a row limit — narrow your date range if needed.
+            </div>
+        </section>
+
+        <!-- ── 4. Managing Clients ──────────────────────────────── -->
+        <section id="clients" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div class="flex items-center gap-3 mb-1">
+                <h2 class="text-lg font-semibold text-white">Managing Clients</h2>
+                <span class="text-xs font-semibold bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded">Admin Only</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/manage/clients/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                Clients are the people or entities whose finances you are managing. Bank accounts are grouped under
+                clients so you can filter the Summary and Transactions views by individual client.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-3">Creating a Client</h3>
+            <ol class="space-y-2 text-sm text-gray-300 mb-6 ml-1">
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span><span>Go to <strong class="text-gray-100">Clients</strong> in the navigation and click <strong class="text-gray-100">Create Client</strong>.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span><span>Enter the client's name. Leave <strong class="text-gray-100">Active</strong> checked unless you want to hide the client from filters.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span><span>Click <strong class="text-gray-100">Create</strong>. The client will now appear in dashboard filter dropdowns.</span></li>
+            </ol>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-3">Mapping Bank Accounts to a Client</h3>
+            <p class="text-gray-300 text-sm mb-3">
+                After connecting a bank (see <a href="#banks" class="text-blue-400 hover:text-blue-300">Connecting Banks</a>),
+                you can associate its accounts with a client so they appear when that client is selected in filters.
+            </p>
+            <ol class="space-y-2 text-sm text-gray-300 mb-6 ml-1">
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span><span>Open the client's edit page (<strong class="text-gray-100">Clients → Edit</strong>).</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span><span>In the <strong class="text-gray-100">Account Mappings</strong> section, click <strong class="text-gray-100">Add Account Mappings</strong>.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span><span>Select the accounts to associate with this client and click <strong class="text-gray-100">Add Accounts</strong>.</span></li>
+            </ol>
+
+            <div class="p-4 bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg text-sm text-blue-200">
+                <strong>Tip:</strong> When you connect a bank and select a client during the connection flow, accounts are
+                mapped automatically — no manual mapping step needed.
+            </div>
+        </section>
+
+        <!-- ── 5. Connecting Banks ──────────────────────────────── -->
+        <section id="banks" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div class="flex items-center gap-3 mb-1">
+                <h2 class="text-lg font-semibold text-white">Connecting Banks</h2>
+                <span class="text-xs font-semibold bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded">Admin Only</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/manage/banks/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                Bank connections are made through <strong class="text-gray-100">Plaid</strong>, a secure bank connectivity
+                service. SoundCheck Financial never stores your banking credentials — only an encrypted access token that
+                Plaid issues after authentication.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-3">Connecting a New Bank</h3>
+            <ol class="space-y-2 text-sm text-gray-300 mb-6 ml-1">
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span><span>Go to <strong class="text-gray-100">Banks</strong> and click <strong class="text-gray-100">Connect New Bank</strong>.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span><span>Select the <strong class="text-gray-100">client</strong> this bank connection belongs to.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span><span>Click <strong class="text-gray-100">Connect Bank Account</strong>. A secure Plaid window will open.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span><span>Search for and select your bank, then follow the on-screen authentication steps.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">5</span><span>Once complete, accounts and transactions are automatically imported and visible on the dashboard.</span></li>
+            </ol>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Managing Connected Banks</h3>
+            <p class="text-gray-300 text-sm mb-3">
+                Each connected bank appears as a card on the Banks page showing its accounts, balances, and sync status.
+            </p>
+            <table class="w-full text-sm border-collapse mb-6">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-40">Action</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Sync Transactions</td>
+                        <td class="py-2 text-gray-300">Fetches new, modified, and removed transactions from the bank. The result shows a count of changes made.</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Refresh Balances</td>
+                        <td class="py-2 text-gray-300">Pulls the latest balance snapshot for all accounts in this connection. Reload the page after to see updated values.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="p-4 bg-yellow-900/30 border-l-4 border-yellow-500 rounded-r-lg text-sm text-yellow-200">
+                <strong>Note:</strong> Some banks require periodic re-authentication through Plaid. If a bank connection
+                shows an <strong>Error</strong> status, the client may need to reconnect their bank.
+            </div>
+        </section>
+
+        <!-- ── 6. Managing Users ────────────────────────────────── -->
+        <section id="users" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div class="flex items-center gap-3 mb-1">
+                <h2 class="text-lg font-semibold text-white">Managing Users</h2>
+                <span class="text-xs font-semibold bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded">Admin Only</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/manage/users/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                The Users page lets administrators create and manage portal accounts, assign roles, and control MFA settings.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Roles</h3>
+            <table class="w-full text-sm border-collapse mb-6">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-24">Role</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Permissions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr>
+                        <td class="py-2 pr-4"><span class="px-2 py-0.5 bg-purple-900/50 text-purple-300 text-xs rounded border border-purple-700/50">Admin</span></td>
+                        <td class="py-2 text-gray-300">Full access to all pages including Users, Clients, Banks, and Audit Log.</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4"><span class="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded border border-gray-600">User</span></td>
+                        <td class="py-2 text-gray-300">Access to Summary and Transactions only. Cannot access admin pages.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-3">Creating a User</h3>
+            <ol class="space-y-2 text-sm text-gray-300 mb-6 ml-1">
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span><span>Click <strong class="text-gray-100">Create User</strong> on the Users page.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span><span>Enter the user's email address, display name, and assign a role.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span><span>Click <strong class="text-gray-100">Create</strong>. Share the temporary password with the user securely.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span><span>The user will be prompted to set up MFA on first login.</span></li>
+            </ol>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">MFA Management Actions</h3>
+            <table class="w-full text-sm border-collapse mb-4">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="text-left py-2 pr-4 text-gray-400 font-medium w-48">Action</th>
+                        <th class="text-left py-2 text-gray-400 font-medium">Description</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50">
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Reset MFA</td>
+                        <td class="py-2 text-gray-300">Clears the user's MFA secret, recovery codes, and trusted devices. The user will be required to set up MFA again on next login.</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2 pr-4 text-gray-200">Regen Recovery Codes</td>
+                        <td class="py-2 text-gray-300">Generates a fresh set of 10 recovery codes and invalidates the old ones. Use this if a user loses their backup codes.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ── 7. Audit Log ─────────────────────────────────────── -->
+        <section id="audit" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div class="flex items-center gap-3 mb-1">
+                <h2 class="text-lg font-semibold text-white">Audit Log</h2>
+                <span class="text-xs font-semibold bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded">Admin Only</span>
+            </div>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/manage/audit/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                The Audit Log is an immutable record of security-relevant events in your portal. Use it to investigate
+                access issues, verify user activity, or review configuration changes.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Event Badge Colors</h3>
+            <div class="flex flex-wrap gap-3 mb-6 text-sm">
+                <div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-800/60 text-green-300 text-xs rounded">success / complete</span><span class="text-gray-400">Action succeeded</span></div>
+                <div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-red-800/60 text-red-300 text-xs rounded">fail / denied</span><span class="text-gray-400">Action failed or was blocked</span></div>
+                <div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded">other</span><span class="text-gray-400">Informational event</span></div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Events Tracked</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-300 mb-4">
+                <div class="py-1 border-b border-gray-700/50">Login success / failure</div>
+                <div class="py-1 border-b border-gray-700/50">MFA setup complete</div>
+                <div class="py-1 border-b border-gray-700/50">MFA verification success / failure</div>
+                <div class="py-1 border-b border-gray-700/50">MFA reset by admin</div>
+                <div class="py-1 border-b border-gray-700/50">Recovery codes regenerated</div>
+                <div class="py-1 border-b border-gray-700/50">Password reset completed</div>
+                <div class="py-1 border-b border-gray-700/50">User created / updated</div>
+                <div class="py-1 border-b border-gray-700/50">Client created / updated</div>
+                <div class="py-1 border-b border-gray-700/50">Account mappings added / removed</div>
+                <div class="py-1 border-b border-gray-700/50">CSV export initiated / completed / denied</div>
+            </div>
+
+            <div class="p-4 bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg text-sm text-blue-200">
+                <strong>Tip:</strong> The log displays the 500 most recent events. The IP address column is useful for
+                spotting logins from unexpected locations.
+            </div>
+        </section>
+
+        <!-- ── 8. MFA ────────────────────────────────────────────── -->
+        <section id="mfa" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-white mb-1">Multi-Factor Authentication (MFA)</h2>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/auth/mfa/setup/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                MFA is <strong class="text-gray-100">required</strong> for all users. After your first login, you will be
+                directed to set up MFA before accessing the dashboard. MFA uses a time-based one-time password (TOTP)
+                that you generate with an authenticator app.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-3">Setting Up MFA</h3>
+            <ol class="space-y-2 text-sm text-gray-300 mb-6 ml-1">
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span><span>Install an authenticator app such as <strong class="text-gray-100">Google Authenticator</strong>, <strong class="text-gray-100">Microsoft Authenticator</strong>, or <strong class="text-gray-100">Authy</strong>.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span><span>Scan the QR code shown on the MFA Setup page with your authenticator app. If you can't scan, tap <strong class="text-gray-100">Can't scan?</strong> to reveal the manual entry key.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span><span>Enter the 6-digit code from your authenticator app to confirm setup.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span><span><strong class="text-red-300">Save your recovery codes</strong> in a secure location. Each code can only be used once and they are the only way to access your account if you lose your authenticator.</span></li>
+            </ol>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Trusted Devices</h3>
+            <p class="text-gray-300 text-sm mb-4">
+                At the MFA verification step, check <strong class="text-gray-100">Remember this device for 7 days</strong>
+                to skip MFA on that browser for a week. This is recommended only on personal, secure devices.
+            </p>
+
+            <h3 class="text-sm font-semibold text-gray-100 mb-2">Recovery Codes</h3>
+            <p class="text-gray-300 text-sm mb-4">
+                Recovery codes are 10 single-use backup codes given when MFA is first set up. Enter any one in place of
+                your 6-digit TOTP code if your authenticator is unavailable. Once used, a code cannot be reused.
+                An admin can generate a new set via <strong class="text-gray-100">Users → Regen Codes</strong>.
+            </p>
+
+            <div class="p-4 bg-yellow-900/30 border-l-4 border-yellow-500 rounded-r-lg text-sm text-yellow-200">
+                <strong>Locked out?</strong> Contact your administrator to reset your MFA. They can use the
+                <strong>Reset MFA</strong> action on the Users page to clear your MFA so you can set it up again on next login.
+            </div>
+        </section>
+
+        <!-- ── 9. Password Reset ────────────────────────────────── -->
+        <section id="password-reset" class="doc-section bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-white mb-1">Password Reset</h2>
+            <p class="text-xs text-gray-500 mb-4 font-mono">/auth/password-reset/</p>
+            <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                If you have forgotten your password, you can request a reset link via email.
+            </p>
+
+            <ol class="space-y-2 text-sm text-gray-300 mb-6 ml-1">
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span><span>On the login page, click <strong class="text-gray-100">Forgot password?</strong></span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span><span>Enter your email address and click <strong class="text-gray-100">Send Reset Link</strong>.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span><span>Check your email for a message from <strong class="text-gray-100">noreply@soundcheckfinancial.com</strong>. The link expires after <strong class="text-gray-100">1 hour</strong>.</span></li>
+                <li class="flex gap-3"><span class="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span><span>Click the link in the email and enter your new password. You will be redirected to login.</span></li>
+            </ol>
+
+            <div class="p-4 bg-blue-900/30 border-l-4 border-blue-500 rounded-r-lg text-sm text-blue-200">
+                <strong>Tip:</strong> For security, the reset form shows the same confirmation message whether or not the
+                email address exists in the system — this prevents account enumeration.
+            </div>
+        </section>
+
+    </div><!-- /main content -->
+</div><!-- /flex wrapper -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Highlight the active sidebar link based on scroll position
+(function () {
+    const sections = document.querySelectorAll('.doc-section');
+    const links = document.querySelectorAll('#doc-nav .sidebar-link');
+    if (!sections.length || !links.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                links.forEach(l => l.classList.remove('active'));
+                const active = document.querySelector(`#doc-nav a[href="#${entry.target.id}"]`);
+                if (active) active.classList.add('active');
+            }
+        });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+})();
+</script>
+{% endblock %}

@@ -30,7 +30,7 @@ def _account_filter(queryset, account_ids, account_id_field="account_id"):
 # ---------------------------------------------------------------------------
 # Summary KPIs
 # ---------------------------------------------------------------------------
-def get_summary_kpis(client_id=None):
+def get_summary_kpis(client_id=None, account_type=None):
     """Return dict with total_balance, total_available, total_pending."""
     account_ids = _get_account_ids_for_client(client_id)
 
@@ -38,6 +38,8 @@ def get_summary_kpis(client_id=None):
     bal_qs = PlaidAccountBalance.objects.all()
     if account_ids is not None:
         bal_qs = bal_qs.filter(account__account_id__in=account_ids)
+    if account_type:
+        bal_qs = bal_qs.filter(account__type=account_type)
 
     agg = bal_qs.aggregate(
         total_balance=Coalesce(Sum("current_balance"), Decimal("0")),
@@ -48,6 +50,8 @@ def get_summary_kpis(client_id=None):
     txn_qs = PlaidTransaction.objects.filter(pending=True)
     if account_ids is not None:
         txn_qs = txn_qs.filter(account__account_id__in=account_ids)
+    if account_type:
+        txn_qs = txn_qs.filter(account__type=account_type)
 
     pending_agg = txn_qs.aggregate(
         total_pending=Coalesce(Sum(Abs("amount")), Decimal("0")),
@@ -92,14 +96,16 @@ _ACCOUNTS_SORT_MAP = {
 }
 
 
-def get_accounts_page(client_id=None, search="", sort="account_name", order="asc",
-                      page=1, page_size=25):
+def get_accounts_page(client_id=None, account_type=None, search="", sort="account_name",
+                      order="asc", page=1, page_size=25):
     """Return paginated accounts with total count."""
     account_ids = _get_account_ids_for_client(client_id)
 
     qs = PlaidAccount.objects.select_related("item", "balance")
     if account_ids is not None:
         qs = qs.filter(account_id__in=account_ids)
+    if account_type:
+        qs = qs.filter(type=account_type)
 
     if search:
         qs = qs.filter(

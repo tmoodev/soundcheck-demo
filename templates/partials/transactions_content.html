@@ -104,8 +104,8 @@
                     <td class="px-4 py-3 text-gray-300 whitespace-nowrap">{{ row.transaction_date|date:"M d, Y"|default:"-" }}</td>
                     <td class="px-4 py-3 text-white font-medium max-w-xs truncate">{{ row.transaction_name|default:"-" }}</td>
                     <td class="px-4 py-3 text-gray-300 max-w-xs truncate">{{ row.merchant_name|default:"-" }}</td>
-                    <td class="px-4 py-3 num-col {% if row.amount < 0 %}text-red-400{% else %}text-green-400{% endif %} font-medium">
-                        {{ row.amount|floatformat:2 }}
+                    <td class="px-4 py-3 num-col {% if row.amount > 0 %}text-red-400{% else %}text-green-400{% endif %} font-medium">
+                        {{ row.amount|mul:-1|floatformat:2 }}
                     </td>
                     <td class="px-4 py-3">
                         {% if row.pending %}

@@ -1,4 +1,4 @@
-{% load dashboard_tags %}
+{% load dashboard_tags humanize %}
 
 <!-- Client Filter -->
 <div class="mb-6">
@@ -19,6 +19,22 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="w-48">
+                <label class="block text-xs font-medium text-gray-400 mb-1">Account Type</label>
+                <select name="account_type"
+                        class="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white focus:ring-2 focus:ring-blue-500"
+                        hx-get="{% url 'dashboard:summary' %}"
+                        hx-target="#summary-content"
+                        hx-swap="innerHTML"
+                        hx-include="#summary-filters"
+                        hx-push-url="true">
+                    <option value="">All Types</option>
+                    <option value="credit" {% if selected_account_type == "credit" %}selected{% endif %}>Credit Cards</option>
+                    <option value="depository" {% if selected_account_type == "depository" %}selected{% endif %}>Depository</option>
+                    <option value="loan" {% if selected_account_type == "loan" %}selected{% endif %}>Loans</option>
+                    <option value="investment" {% if selected_account_type == "investment" %}selected{% endif %}>Investment</option>
+                </select>
+            </div>
         </div>
     </form>
 </div>
@@ -27,15 +43,15 @@
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
     <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
         <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Balance</p>
-        <p class="text-2xl font-bold text-white mt-2 num-col">${{ kpis.total_balance|floatformat:2|default:"0.00" }}</p>
+        <p class="text-2xl font-bold text-white mt-2 num-col">${{ kpis.total_balance|floatformat:2|intcomma|default:"0.00" }}</p>
     </div>
     <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
         <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Available</p>
-        <p class="text-2xl font-bold text-white mt-2 num-col">${{ kpis.total_available|floatformat:2|default:"0.00" }}</p>
+        <p class="text-2xl font-bold text-white mt-2 num-col">${{ kpis.total_available|floatformat:2|intcomma|default:"0.00" }}</p>
     </div>
     <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
         <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Pending</p>
-        <p class="text-2xl font-bold text-yellow-400 mt-2 num-col">${{ kpis.total_pending|floatformat:2|default:"0.00" }}</p>
+        <p class="text-2xl font-bold text-yellow-400 mt-2 num-col">${{ kpis.total_pending|floatformat:2|intcomma|default:"0.00" }}</p>
     </div>
 </div>
 
@@ -62,7 +78,7 @@
                 <tr>
                     {% for col_name, col_key in "Account Name:account_name,Institution:institution_name,Type:type,Subtype:subtype,Mask:mask,Balance:current_balance,Available:available_balance,Credit Limit:credit_limit,Utilization:utilization_pct,Overdrawn:is_overdrawn,Balance As Of:balance_as_of"|split_pairs %}
                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:text-white"
-                        hx-get="{% url 'dashboard:summary' %}?sort={{ col_key }}&order={% if sort == col_key and order == 'asc' %}desc{% else %}asc{% endif %}&client_id={{ selected_client_id }}&search={{ search }}"
+                        hx-get="{% url 'dashboard:summary' %}?sort={{ col_key }}&order={% if sort == col_key and order == 'asc' %}desc{% else %}asc{% endif %}&client_id={{ selected_client_id }}&account_type={{ selected_account_type }}&search={{ search }}"
                         hx-target="#summary-content"
                         hx-swap="innerHTML"
                         hx-push-url="true">
@@ -83,10 +99,10 @@
                     <td class="px-4 py-3 text-gray-300">{{ row.subtype|default:"-" }}</td>
                     <td class="px-4 py-3 text-gray-400 font-mono">{{ row.mask|default:"-" }}</td>
                     <td class="px-4 py-3 num-col {% if row.current_balance < 0 %}text-red-400{% else %}text-white{% endif %}">
-                        {{ row.current_balance|floatformat:2|default:"-" }}
+                        {% if row.current_balance is not None %}${{ row.current_balance|floatformat:2|intcomma }}{% else %}-{% endif %}
                     </td>
-                    <td class="px-4 py-3 num-col text-gray-300">{{ row.available_balance|floatformat:2|default:"-" }}</td>
-                    <td class="px-4 py-3 num-col text-gray-300">{{ row.credit_limit|floatformat:2|default:"-" }}</td>
+                    <td class="px-4 py-3 num-col text-gray-300">{% if row.available_balance is not None %}${{ row.available_balance|floatformat:2|intcomma }}{% else %}-{% endif %}</td>
+                    <td class="px-4 py-3 num-col text-gray-300">{% if row.credit_limit is not None %}${{ row.credit_limit|floatformat:2|intcomma }}{% else %}-{% endif %}</td>
                     <td class="px-4 py-3 num-col text-gray-300">
                         {% if row.utilization_pct is not None %}{{ row.utilization_pct|floatformat:1 }}%{% else %}-{% endif %}
                     </td>
@@ -117,7 +133,7 @@
         <div class="flex gap-2">
             {% if accounts.page > 1 %}
             <button class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white"
-                    hx-get="{% url 'dashboard:summary' %}?page={{ accounts.page|add:"-1" }}&sort={{ sort }}&order={{ order }}&client_id={{ selected_client_id }}&search={{ search }}"
+                    hx-get="{% url 'dashboard:summary' %}?page={{ accounts.page|add:"-1" }}&sort={{ sort }}&order={{ order }}&client_id={{ selected_client_id }}&account_type={{ selected_account_type }}&search={{ search }}"
                     hx-target="#summary-content"
                     hx-swap="innerHTML"
                     hx-push-url="true">
@@ -126,7 +142,7 @@
             {% endif %}
             {% if accounts.page < accounts.total_pages %}
             <button class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-sm text-white"
-                    hx-get="{% url 'dashboard:summary' %}?page={{ accounts.page|add:"1" }}&sort={{ sort }}&order={{ order }}&client_id={{ selected_client_id }}&search={{ search }}"
+                    hx-get="{% url 'dashboard:summary' %}?page={{ accounts.page|add:"1" }}&sort={{ sort }}&order={{ order }}&client_id={{ selected_client_id }}&account_type={{ selected_account_type }}&search={{ search }}"
                     hx-target="#summary-content"
                     hx-swap="innerHTML"
                     hx-push-url="true">

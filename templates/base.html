@@ -74,6 +74,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-sm text-gray-400 hidden sm:inline">{{ request.user.display_name }}</span>
+                    <a href="{% url 'dashboard:docs' %}" class="text-sm text-gray-400 hover:text-white hidden sm:inline" title="Help & Documentation">Help</a>
                     <form method="post" action="{% url 'accounts:logout' %}" class="inline">
                         {% csrf_token %}
                         <button type="submit" class="text-sm text-gray-400 hover:text-white">Logout</button>
@@ -89,6 +90,10 @@
                 <a href="{% url 'dashboard:transactions' %}"
                    class="px-3 py-1.5 rounded text-xs font-medium {% if active_page == 'transactions' %}bg-gray-900 text-white{% else %}text-gray-300{% endif %}">
                     Transactions
+                </a>
+                <a href="{% url 'dashboard:docs' %}"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if active_page == 'docs' %}bg-gray-900 text-white{% else %}text-gray-300{% endif %}">
+                    Help
                 </a>
                 {% if request.user.is_tenant_admin %}
                 <a href="{% url 'admin_panel:user_list' %}"

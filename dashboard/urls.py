@@ -8,4 +8,5 @@ urlpatterns = [
     path("transactions/", views.transactions_view, name="transactions"),
     path("transactions/export/", views.export_csv_view, name="export_csv"),
     path("api/account-options/", views.account_options_view, name="account_options"),
+    path("help/", views.docs_view, name="docs"),
 ]

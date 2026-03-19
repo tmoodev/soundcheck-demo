@@ -31,6 +31,19 @@ def _is_mobile(request):
 
 
 # ---------------------------------------------------------------------------
+# Documentation Page
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_GET
+def docs_view(request):
+    return render(request, "dashboard/docs.html", {
+        "page_title": "Help & Documentation",
+        "active_page": "docs",
+    })
+
+
+# ---------------------------------------------------------------------------
 # Summary Page
 # ---------------------------------------------------------------------------
 @login_required
@@ -39,9 +52,10 @@ def summary_view(request):
     """Main summary page with KPIs and accounts table."""
     clients = Client.objects.filter(active=True)
     client_id = request.GET.get("client_id", "")
+    account_type = request.GET.get("account_type", "")
 
     # KPIs
-    kpis = queries.get_summary_kpis(client_id=client_id or None)
+    kpis = queries.get_summary_kpis(client_id=client_id or None, account_type=account_type or None)
 
     # Accounts table
     search = request.GET.get("search", "")
@@ -52,13 +66,14 @@ def summary_view(request):
                            maximum=settings.MAX_PAGE_SIZE)
 
     accounts_data = queries.get_accounts_page(
-        client_id=client_id or None, search=search,
-        sort=sort, order=order, page=page, page_size=page_size,
+        client_id=client_id or None, account_type=account_type or None,
+        search=search, sort=sort, order=order, page=page, page_size=page_size,
     )
 
     context = {
         "clients": clients,
         "selected_client_id": client_id,
+        "selected_account_type": account_type,
         "kpis": kpis,
         "accounts": accounts_data,
         "search": search,

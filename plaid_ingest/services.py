@@ -18,7 +18,7 @@ from plaid.model.link_token_create_request import LinkTokenCreateRequest
 from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
 from plaid.model.products import Products
 from plaid.model.transactions_sync_request import TransactionsSyncRequest
-from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
+from plaid.model.accounts_get_request import AccountsGetRequest
 
 from clients.models import Client, ClientAccount
 from .models import (
@@ -135,8 +135,8 @@ def fetch_accounts(plaid_item: PlaidItem):
     """Fetch accounts and balances from Plaid for the given item."""
     plaid_client = get_plaid_client()
 
-    request = AccountsBalanceGetRequest(access_token=plaid_item.access_token)
-    response = plaid_client.accounts_balance_get(request)
+    request = AccountsGetRequest(access_token=plaid_item.access_token)
+    response = plaid_client.accounts_get(request)
 
     for acct in response.accounts:
         plaid_account, _ = PlaidAccount.objects.update_or_create(
