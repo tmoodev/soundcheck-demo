@@ -36,33 +36,6 @@ class LoginForm(forms.Form):
         return self.user_cache
 
 
-class MFAVerifyForm(forms.Form):
-    code = forms.CharField(
-        max_length=10,
-        widget=forms.TextInput(attrs={
-            "class": tw,
-            "placeholder": "6-digit code or recovery code",
-            "autocomplete": "one-time-code",
-            "inputmode": "numeric",
-            "autofocus": True,
-        })
-    )
-    remember_device = forms.BooleanField(required=False, label="Remember this device for 7 days")
-
-
-class MFASetupForm(forms.Form):
-    code = forms.CharField(
-        max_length=6,
-        widget=forms.TextInput(attrs={
-            "class": tw,
-            "placeholder": "Enter the 6-digit code from your authenticator",
-            "autocomplete": "one-time-code",
-            "inputmode": "numeric",
-            "autofocus": True,
-        })
-    )
-
-
 class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={"class": tw, "placeholder": "Email address"})

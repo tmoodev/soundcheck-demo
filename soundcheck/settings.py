@@ -57,8 +57,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "accounts.middleware.MFAEnforcementMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
+"django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -148,7 +147,6 @@ if not DEBUG:
 # ---------------------------------------------------------------------------
 # MFA
 # ---------------------------------------------------------------------------
-MFA_REMEMBER_DEVICE_DAYS = int(os.environ.get("MFA_REMEMBER_DEVICE_DAYS", 7))
 
 # ---------------------------------------------------------------------------
 # Email (SMTP)

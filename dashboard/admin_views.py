@@ -79,38 +79,6 @@ def user_edit_view(request, user_id):
     })
 
 
-@login_required
-@tenant_admin_required
-@require_http_methods(["POST"])
-def user_reset_mfa_view(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    user.mfa_enabled = False
-    user.mfa_confirmed = False
-    user.mfa_secret = ""
-    user.recovery_codes = []
-    user.save(update_fields=["mfa_enabled", "mfa_confirmed", "mfa_secret", "recovery_codes"])
-    user.trusted_devices.all().delete()
-    log_event(request, "mfa_reset", user=user, detail=f"MFA reset for {user.email}")
-    messages.success(request, f"MFA has been reset for {user.email}. They must set up MFA again.")
-    return redirect("admin_panel:user_list")
-
-
-@login_required
-@tenant_admin_required
-@require_http_methods(["POST"])
-def user_regen_recovery_view(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
-    codes = user.generate_recovery_codes()
-    log_event(request, "recovery_codes_regenerated", user=user,
-              detail=f"Recovery codes regenerated for {user.email}")
-    return render(request, "admin_panel/recovery_codes.html", {
-        "target_user": user,
-        "recovery_codes": codes,
-        "page_title": f"Recovery Codes – {user.email}",
-        "active_page": "users",
-    })
-
-
 # ---------------------------------------------------------------------------
 # Client Management
 # ---------------------------------------------------------------------------
