@@ -1,4 +1,1 @@
-# soundcheck-demo
-
-## Deploy Configuration
-
+@AGENTS.md
